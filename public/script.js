@@ -10,7 +10,6 @@ const progressFill = document.getElementById('progressFill');
 const outputSection = document.getElementById('outputSection');
 const pixelMapContainer = document.getElementById('pixelMapContainer');
 const greyscaleCanvas = document.getElementById('greyscaleCanvas');
-const downloadBtn = document.getElementById('downloadBtn');
 const printBtn = document.getElementById('printBtn');
 
 // State
@@ -45,8 +44,6 @@ uploadArea.addEventListener('drop', (e) => {
 });
 
 convertBtn.addEventListener('click', convertImage);
-
-downloadBtn.addEventListener('click', downloadPDF);
 
 printBtn.addEventListener('click', printBoth);
 
