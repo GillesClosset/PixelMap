@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Convertisseur d'Images en Carte de Pixels</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Convertisseur d'Images en Carte de Pixels</h1>
+             <!-- Pixel map will be generated here  <p>Transformez vos images en cartes de pixels pour le point de croix et autres crafts</p>-->
+        </header>
+
+        <main>
+            <section class="upload-section">
+                <h2>Télécharger une Image</h2>
+                <div class="upload-area" id="uploadArea">
+                    <p>Glissez et déposez une image ici ou</p>
+                    <button id="fileSelectBtn">Choisir un fichier</button>
+                    <input type="file" id="fileInput" accept="image/*" hidden>
+                </div>
+                <div class="image-preview" id="imagePreview">
+                    <img id="previewImage" src="" alt="Aperçu de l'image">
+                </div>
+            </section>
+
+            <section class="config-section">
+                <h2>Configuration</h2>
+                <div class="config-item">
+                    <label for="shadeCount">Nombre de Nuances de Gris :</label>
+                    <div class="shade-options">
+                        <input type="radio" id="shades9" name="shades" value="9">
+                        <label for="shades9">9</label>
+                        
+                        <input type="radio" id="shades10" name="shades" value="10">
+                        <label for="shades10">10</label>
+                        
+                        <input type="radio" id="shades11" name="shades" value="11">
+                        <label for="shades11">11</label>
+                        
+                        <input type="radio" id="shades12" name="shades" value="12" checked>
+                        <label for="shades12">12</label>
+                    </div>
+                </div>
+            </section>
+
+            <section class="process-section">
+                <button id="convertBtn" class="primary-btn">Convertir en Carte de Pixels</button>
+                <div class="progress-bar" id="progressBar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+            </section>
+
+            <section class="output-section" id="outputSection">
+                <h2>Résultat</h2>
+                <div class="output-preview">
+                    <div class="preview-item">
+                        <h3>Image en Pixels Gris</h3>
+                        <canvas id="greyscaleCanvas" width="50" height="70"></canvas>
+                    </div>
+                    <div class="preview-item">
+                        <h3>Carte de Pixels</h3>
+                        <div class="pixel-map" id="pixelMapContainer">
+                            <!-- Pixel map will be generated here -->
+                        </div>
+                    </div>
+                </div>
+                <div class="output-controls">
+                    <button id="downloadBtn" class="secondary-btn">Télécharger PDF (2 pages)</button>
+                    <button id="printBtn" class="secondary-btn">Imprimer</button>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>© 2025 Convertisseur de Carte de Pixels</p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
