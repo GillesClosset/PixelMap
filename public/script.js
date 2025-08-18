@@ -63,6 +63,8 @@ function handleFileSelect() {
         imagePreview.style.display = 'block';
         currentImage = new Image();
         currentImage.src = e.target.result;
+        // Store original image data for PDF generation
+        originalImageData = e.target.result;
         convertBtn.disabled = false;
     };
     
@@ -194,8 +196,11 @@ function displayPixelMap(map) {
     }
 }
 
+// Store original image data for PDF generation
+let originalImageData = null;
+
 function downloadPDF() {
-    if (!pixelMap || !greyscaleImageData) {
+    if (!pixelMap || !greyscaleImageData || !currentImage) {
         alert('Aucune donnée à télécharger. Veuillez d\'abord convertir une image.');
         return;
     }
@@ -210,69 +215,87 @@ function downloadPDF() {
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>Carte de Pixels - PDF</title>
             <style>
+                @page {
+                    margin: 10px;
+                    size: A4;
+                }
+                
+                @media print {
+                    html, body {
+                        margin: 10px;
+                        padding: 0;
+                        width: calc(100% - 20px);
+                        height: calc(100% - 20px);
+                    }
+                }
+                
                 body {
                     font-family: Arial, sans-serif;
-                    margin: 0;
+                    margin: 10px;
                     padding: 0;
+                    width: calc(100% - 20px);
+                    height: calc(100% - 20px);
                 }
+                
                 .page {
                     width: 100%;
                     height: 100vh;
-                    display: flex;
-                    flex-direction: column;
-                    justify-content: center;
-                    align-items: center;
                     page-break-after: always;
+                    position: relative;
+                    overflow: hidden;
                 }
+                
                 .page:last-child {
                     page-break-after: avoid;
                 }
-                .header {
-                    text-align: center;
-                    margin-bottom: 20px;
+                
+                .page:first-child {
+                    page-break-after: always;
                 }
-                canvas {
-                    image-rendering: pixelated;
-                    image-rendering: -moz-crisp-edges;
-                    image-rendering: crisp-edges;
-                    border: 1px solid #ccc;
-                    width: 500px;
-                    height: 700px;
-                    max-width: 80%;
-                    max-height: 60%;
+                
+                .page:nth-child(2) {
+                    page-break-after: avoid;
                 }
+                
+                .page img, .page canvas {
+                    width: 98%;
+                    height: 98%;
+                    object-fit: fill;
+                    display: block;
+                    margin: 1%;
+                    padding: 0;
+                }
+                
                 .pixel-grid {
                     display: grid;
-                    grid-template-columns: repeat(51, 1fr);
-                    gap: 1px;
-                    font-size: 6px;
-                    max-width: 90%;
-                    max-height: 70%;
+                    grid-template-columns: repeat(${pixelMap[0].length}, 1fr);
+                    grid-template-rows: repeat(${pixelMap.length}, 1fr);
+                    gap: 0;
+                    width: 98%;
+                    height: 98%;
+                    font-size: 8px;
                     overflow: hidden;
-                    border: 1px solid #000;
+                    box-sizing: border-box;
+                    margin: 1%;
                 }
+                
                 .pixel-cell {
-                    text-align: center;
-                    padding: 1px;
-                    border: 1px solid #ccc;
-                }
-                .header-cell {
-                    background-color: #ddd;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
                     font-weight: bold;
+                    margin: 0;
+                    padding: 0;
+                    border: none;
+                    box-sizing: border-box;
                 }
-                .row-header {
-                    background-color: #eee;
-                    font-weight: bold;
-                }
+                
                 @media print {
                     body {
                         margin: 0;
                         font-size: 6px;
                     }
-                    canvas {
-                        width: 500px;
-                        height: 700px;
-                    }
+                    
                     .pixel-grid {
                         font-size: 5px;
                     }
@@ -281,31 +304,14 @@ function downloadPDF() {
         </head>
         <body>
             <div class="page">
-                <div class="header">
-                    <h1>Image en Pixels Gris</h1>
-                    <p>Dimensions: 50x70 | Nuances: ${getSelectedShades()} | Date: ${new Date().toLocaleString('fr-FR')}</p>
-                </div>
-                <canvas id="pdfCanvas" width="50" height="70"></canvas>
+                <canvas id="pdfCanvas" width="${pixelMap[0].length}" height="${pixelMap.length}"></canvas>
             </div>
             <div class="page">
-                <div class="header">
-                    <h1>Carte de Pixels</h1>
-                    <p>Dimensions: 50x70 | Nuances: ${getSelectedShades()} | Date: ${new Date().toLocaleString('fr-FR')}</p>
-                </div>
                 <div class="pixel-grid" id="pdfPixelGrid">
     `);
     
-    // Add column headers (0-49)
-    printWindow.document.write('<div class="pixel-cell header-cell"></div>'); // Top-left corner
-    for (let x = 0; x < 50; x++) {
-        printWindow.document.write(`<div class="pixel-cell header-cell">${x}</div>`);
-    }
-    
-    // Add rows with row headers
+    // Add pixel map cells without headers
     for (let y = 0; y < pixelMap.length; y++) {
-        // Row header
-        printWindow.document.write(`<div class="pixel-cell row-header">${y}</div>`);
-        // Row cells
         for (let x = 0; x < pixelMap[y].length; x++) {
             printWindow.document.write(`<div class="pixel-cell">${pixelMap[y][x].toString().padStart(2, '0')}</div>`);
         }
@@ -316,21 +322,27 @@ function downloadPDF() {
             </div>
             <script>
                 // Draw the greyscale image on the canvas
-                const canvas = document.getElementById('pdfCanvas');
-                const ctx = canvas.getContext('2d');
-                const imageData = ctx.createImageData(50, 70);
-                
-                // Copy the image data
-                const data = imageData.data;
-                const sourceData = [${Array.from(greyscaleImageData.data)}];
-                
-                for (let i = 0; i < data.length; i++) {
-                    data[i] = sourceData[i];
-                }
-                
-                ctx.putImageData(imageData, 0, 0);
-                
                 window.onload = function() {
+                    const canvas = document.getElementById('pdfCanvas');
+                    const ctx = canvas.getContext('2d');
+                    const imageData = ctx.createImageData(${pixelMap[0].length}, ${pixelMap.length});
+                    
+                    // Copy the image data
+                    const data = imageData.data;
+                    const sourceData = [${Array.from(greyscaleImageData.data)}];
+                    
+                    for (let i = 0; i < data.length; i++) {
+                        data[i] = sourceData[i];
+                    }
+                    
+                    ctx.putImageData(imageData, 0, 0);
+                    
+                    // Apply pixelated rendering
+                    ctx.imageSmoothingEnabled = false;
+                    canvas.style.imageRendering = 'pixelated';
+                    canvas.style.imageRendering = '-moz-crisp-edges';
+                    canvas.style.imageRendering = 'crisp-edges';
+                    
                     window.print();
                     window.onafterprint = function() {
                         window.close();

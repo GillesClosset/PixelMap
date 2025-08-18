@@ -8,6 +8,7 @@
     "start": "node server.js"
   },
   "dependencies": {
+    "@playwright/test": "^1.54.2",
     "express": "^4.18.0"
   },
   "devDependencies": {
