@@ -4,7 +4,7 @@ Une application web légère qui convertit les images en cartes de pixels pour l
 
 ## Fonctionnalités
 
-- Convertit les images en cartes de pixels de 50x70
+- Convertit les images en cartes de pixels de 50x80
 - Supporte 9 à 12 nuances de gris (par défaut 12)
 - Interface utilisateur en français
 - Affichage de l'image en pixels gris et de la carte de pixels
