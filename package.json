@@ -11,8 +11,7 @@
     "@playwright/test": "^1.54.2",
     "axios": "^1.12.1",
     "canvas": "^2.11.2",
-    "express": "^4.18.0",
-    "pdfkit": "^0.13.0"
+    "express": "^4.18.0"
   },
   "devDependencies": {
     "vercel": "^28.0.0"

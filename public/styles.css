@@ -146,46 +146,6 @@ section h3 {
     color: white;
 }
 
-/* Process section */
-.process-section {
-    text-align: center;
-}
-
-.primary-btn {
-    background-color: #4a6fa5;
-    color: white;
-    border: none;
-    padding: 15px 30px;
-    border-radius: 5px;
-    font-size: 1.1rem;
-    cursor: pointer;
-    transition: background-color 0.3s;
-    margin-bottom: 20px;
-}
-
-.primary-btn:hover {
-    background-color: #3a5a80;
-}
-
-.primary-btn:disabled {
-    background-color: #a0a0a0;
-    cursor: not-allowed;
-}
-
-.progress-bar {
-    height: 20px;
-    background-color: #e0e0e0;
-    border-radius: 10px;
-    overflow: hidden;
-    display: none;
-}
-
-.progress-fill {
-    height: 100%;
-    background-color: #4a6fa5;
-    width: 0%;
-    transition: width 0.3s;
-}
 
 /* Output section */
 .output-preview {
@@ -215,15 +175,16 @@ section h3 {
 .pixel-map {
     display: grid;
     grid-template-columns: repeat(50, 1fr);
+    grid-template-rows: repeat(70, 1fr);
     gap: 1px;
     background-color: #e0e0e0;
     border: 1px solid #ccc;
     border-radius: 4px;
     overflow: auto;
-    max-height: 570px;
     padding: 5px;
     margin: 0 auto;
     max-width: 500px;
+    aspect-ratio: 50/70;
 }
 
 .pixel-cell {
@@ -312,115 +273,5 @@ footer {
     
     .secondary-btn {
         width: 80%;
-    }
-}
-
-/* PDF specific styles */
-@media print {
-    @page {
-        margin: 0;
-        size: A4;
-    }
-    
-    body {
-        margin: 0;
-        padding: 0;
-    }
-    
-    .page {
-        width: 100%;
-        height: 100vh;
-        page-break-after: always;
-        position: relative;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        padding: 20px;
-        box-sizing: border-box;
-    }
-    
-    .page:last-child {
-        page-break-after: avoid;
-    }
-    
-    .page-content {
-        width: 100%;
-        height: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-direction: column;
-    }
-    
-    .page img {
-        max-width: 90%;
-        max-height: 80%;
-        object-fit: contain;
-        border: 1px solid #ccc;
-        box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-    
-    .pixel-grid {
-        display: grid;
-        grid-template-columns: repeat(50, 1fr);
-        grid-template-rows: repeat(70, 1fr);
-        gap: 0;
-        width: 90%;
-        height: 80%;
-        font-size: 12px;
-        overflow: hidden;
-        box-sizing: border-box;
-        border: 1px solid #ccc;
-        box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-    
-    .pixel-cell {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: bold;
-        margin: 0;
-        padding: 0;
-        border: 0.5px solid #e0e0e0;
-        box-sizing: border-box;
-        font-size: 10px;
-        background-color: white;
-    }
-    
-    @media print {
-        body {
-            margin: 0;
-            font-size: 10px;
-        }
-        
-        .pixel-grid {
-            font-size: 8px;
-        }
-        
-        .page-title {
-            font-size: 20px;
-        }
-    }
-    
-    .page-title {
-        position: absolute;
-        top: 10px;
-        left: 0;
-        right: 0;
-        text-align: center;
-        font-size: 24px;
-        font-weight: bold;
-        color: #333;
-    }
-    
-    .legend {
-        position: absolute;
-        bottom: 20px;
-        left: 0;
-        right: 0;
-        text-align: center;
-        font-size: 14px;
-        color: #666;
     }
 }

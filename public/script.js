@@ -4,14 +4,10 @@ const fileInput = document.getElementById('fileInput');
 const fileSelectBtn = document.getElementById('fileSelectBtn');
 const previewImage = document.getElementById('previewImage');
 const imagePreview = document.getElementById('imagePreview');
-const convertBtn = document.getElementById('convertBtn');
-const progressBar = document.getElementById('progressBar');
-const progressFill = document.getElementById('progressFill');
 const outputSection = document.getElementById('outputSection');
 const pixelMapContainer = document.getElementById('pixelMapContainer');
 const greyscaleCanvas = document.getElementById('greyscaleCanvas');
 const printBtn = document.getElementById('printBtn');
-const downloadBtn = document.getElementById('downloadBtn');
 
 // State
 let currentImage = null;
@@ -44,12 +40,7 @@ uploadArea.addEventListener('drop', (e) => {
     }
 });
 
-
-convertBtn.addEventListener('click', convertImage);
-
 printBtn.addEventListener('click', printBoth);
-
-downloadBtn.addEventListener('click', downloadPDF);
 // Functions
 function handleFileSelect() {
     const file = fileInput.files[0];
@@ -65,55 +56,26 @@ function handleFileSelect() {
         previewImage.src = e.target.result;
         imagePreview.style.display = 'block';
         currentImage = new Image();
+        currentImage.onload = () => {
+            // Automatically convert the image when it's uploaded and fully loaded
+            convertImageAutomatically();
+        };
         currentImage.src = e.target.result;
-        // Store original image data for PDF generation
-        originalImageData = e.target.result;
-        convertBtn.disabled = false;
     };
     
     reader.readAsDataURL(file);
 }
 
 /**
-* Checks if image data is already greyscale
-* @param {Uint8ClampedArray} data - Image data array
-* @param {number} width - Image width
-* @param {number} height - Image height
-* @returns {boolean} True if image is greyscale
-*/
-function isGreyscale(data, width, height) {
-    for (let y = 0; y < height; y++) {
-        for (let x = 0; x < width; x++) {
-            const idx = (y * width + x) * 4;
-            const r = data[idx];
-            const g = data[idx + 1];
-            const b = data[idx + 2];
-            
-            // If RGB values are not equal, it's not greyscale
-            if (r !== g || g !== b) {
-                return false;
-            }
-        }
-    }
-    return true;
-}
-
-async function convertImage() {
+* Automatically converts the uploaded image to a pixel map
+ */
+async function convertImageAutomatically() {
     if (!currentImage) {
         alert('Veuillez d\'abord télécharger une image.');
         return;
     }
     
-    // Show progress bar
-    progressBar.style.display = 'block';
-    progressFill.style.width = '0%';
-    convertBtn.disabled = true;
-    downloadBtn.disabled = true;
-    
     try {
-        // Update progress
-        progressFill.style.width = '30%';
-        
         // Convert image to base64
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
@@ -122,9 +84,6 @@ async function convertImage() {
         ctx.drawImage(currentImage, 0, 0, 50, 70);
         const imageData = canvas.toDataURL('image/png');
         const base64Data = imageData.replace(/^data:image\/\w+;base64,/, '');
-        
-        // Update progress
-        progressFill.style.width = '60%';
         
         // Send request to API
         const response = await fetch('/api/convert', {
@@ -139,9 +98,6 @@ async function convertImage() {
             })
         });
         
-        // Update progress
-        progressFill.style.width = '90%';
-        
         if (!response.ok) {
             throw new Error(`Erreur HTTP: ${response.status}`);
         }
@@ -151,6 +107,7 @@ async function convertImage() {
         if (!result.success) {
             throw new Error(result.error.message || 'Erreur de traitement');
         }
+        
         // Store the pixel map data
         pixelMap = result.data.pixelMap;
         
@@ -182,10 +139,6 @@ async function convertImage() {
         
         greyscaleImageData = printImageData;
         
-        // Update progress
-        progressFill.style.width = '100%';
-        
-        
         // Display the results
         displayPixelMap(pixelMap);
         
@@ -200,16 +153,33 @@ async function convertImage() {
     } catch (error) {
         console.error('Error processing image:', error);
         alert(`Une erreur s'est produite lors du traitement de l'image: ${error.message}`);
-    } finally {
-        // Hide progress bar after a short delay
-        setTimeout(() => {
-            progressBar.style.display = 'none';
-            progressFill.style.width = '0%';
-            convertBtn.disabled = false;
-            downloadBtn.disabled = false;
-        }, 500);
     }
 }
+
+/**
+* Checks if image data is already greyscale
+* @param {Uint8ClampedArray} data - Image data array
+* @param {number} width - Image width
+* @param {number} height - Image height
+* @returns {boolean} True if image is greyscale
+*/
+function isGreyscale(data, width, height) {
+    for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+            const idx = (y * width + x) * 4;
+            const r = data[idx];
+            const g = data[idx + 1];
+            const b = data[idx + 2];
+            
+            // If RGB values are not equal, it's not greyscale
+            if (r !== g || g !== b) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
 
 function processImageToPixelMap(image, width, height) {
     // Create a canvas to process the image
@@ -301,85 +271,10 @@ function displayPixelMap(map) {
     }
 }
 
-// Store original image data for PDF generation
-let originalImageData = null;
 
-async function downloadPDF() {
-    if (!currentImage) {
-        alert('Aucune donnée à télécharger. Veuillez d\'abord convertir une image.');
-        return;
-    }
-    
-    try {
-        // Show progress indicator
-        progressBar.style.display = 'block';
-        progressFill.style.width = '30%';
-        downloadBtn.disabled = true;
-        
-        // Convert image to base64
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        canvas.width = 50;
-        canvas.height = 70;
-        ctx.drawImage(currentImage, 0, 0, 50, 70);
-        const imageData = canvas.toDataURL('image/png');
-        const base64Data = imageData.replace(/^data:image\/\w+;base64,/, '');
-        
-        // Update progress
-        progressFill.style.width = '60%';
-        
-        // Send request to API for PDF generation
-        const response = await fetch('/api/convert', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                imageData: base64Data,
-                shades: 10,
-                format: 'pdf'
-            })
-        });
-        
-        // Update progress
-        progressFill.style.width = '90%';
-        
-        if (!response.ok) {
-            throw new Error(`Erreur HTTP: ${response.status}`);
-        }
-        
-        // Get the PDF blob
-        const blob = await response.blob();
-        
-        // Update progress
-        progressFill.style.width = '100%';
-        
-        // Create download link
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'carte-pixels.pdf';
-        document.body.appendChild(a);
-        a.click();
-        
-        // Clean up
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-    } catch (error) {
-        console.error('Error downloading PDF:', error);
-        alert(`Une erreur s'est produite lors du téléchargement du PDF: ${error.message}`);
-    } finally {
-        // Hide progress bar
-        setTimeout(() => {
-            progressBar.style.display = 'none';
-            progressFill.style.width = '0%';
-            downloadBtn.disabled = false;
-        }, 500);
-    }
-}
 
 function printBoth() {
-    if (!pixelMap || !greyscaleImageData) {
+    if (!pixelMap || !greyscaleImageData || !currentImage) {
         alert('Aucune donnée à imprimer. Veuillez d\'abord convertir une image.');
         return;
     }
@@ -395,7 +290,7 @@ function printBoth() {
             <title>Carte de Pixels - Impression</title>
             <style>
                 @page {
-                    margin: 0;
+                    margin: 0.75in; /* Printer-friendly margins */
                     size: A4;
                 }
                 
@@ -418,14 +313,12 @@ function printBoth() {
                 
                 .page {
                     width: 100%;
-                    height: 100vh;
+                    min-height: 100vh;
                     page-break-after: always;
                     position: relative;
                     display: flex;
                     flex-direction: column;
-                    align-items: center;
-                    justify-content: center;
-                    padding: 20px;
+                    padding: 0.5in; /* Printer-friendly padding */
                     box-sizing: border-box;
                 }
                 
@@ -434,32 +327,29 @@ function printBoth() {
                 }
                 
                 .page-title {
-                    position: absolute;
-                    top: 10px;
-                    left: 0;
-                    right: 0;
                     text-align: center;
                     font-size: 24px;
                     font-weight: bold;
-                    color: #33;
+                    color: #333;
                     margin-bottom: 20px;
                 }
                 
                 .page-content {
                     width: 100%;
-                    height: 100%;
+                    flex-grow: 1;
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    flex-direction: column;
+                    margin: 20px 0;
                 }
                 
                 .page img {
-                    max-width: 90%;
-                    max-height: 80%;
+                    max-width: 100%;
+                    max-height: 100%;
+                    width: auto;
+                    height: auto;
                     object-fit: contain;
-                    border: 1px solid #ccc;
-                    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+                    border: none;
                 }
                 
                 .pixel-grid {
@@ -467,13 +357,12 @@ function printBoth() {
                     grid-template-columns: repeat(${pixelMap[0].length}, 1fr);
                     grid-template-rows: repeat(${pixelMap.length}, 1fr);
                     gap: 0;
-                    width: 90%;
-                    height: 80%;
+                    width: 100%;
+                    max-height: 80vh;
                     font-size: 12px;
                     overflow: hidden;
                     box-sizing: border-box;
-                    border: 1px solid #ccc;
-                    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+                    border: none;
                 }
                 
                 .pixel-cell {
@@ -502,16 +391,25 @@ function printBoth() {
                     .page-title {
                         font-size: 20px;
                     }
+                    
+                    .page {
+                        padding: 0.5in; /* Maintain padding for print */
+                    }
                 }
                 
                 .legend {
-                    position: absolute;
-                    bottom: 20px;
-                    left: 0;
-                    right: 0;
                     text-align: center;
                     font-size: 14px;
                     color: #666;
+                    margin-top: 20px;
+                }
+                
+                /* Additional printer-friendly adjustments */
+                @media print {
+                    * {
+                        -webkit-print-color-adjust: exact !important;
+                        color-adjust: exact !important;
+                    }
                 }
             </style>
         </head>
@@ -519,9 +417,9 @@ function printBoth() {
             <div class="page">
                 <div class="page-title">Image Originale</div>
                 <div class="page-content">
-                    <img src="${originalImageData}" alt="Original Image">
+                    <img src="${currentImage.src}" alt="Image Originale">
                 </div>
-                <div class="legend">Page 1: Image originale</div>
+                <div class="legend">Image Originale - Carte de Pixels</div>
             </div>
             <div class="page">
                 <div class="page-title">Carte de Pixels</div>
@@ -539,7 +437,7 @@ function printBoth() {
     printWindow.document.write(`
                     </div>
                 </div>
-                <div class="legend">Page 2: Carte de pixels (0-9)</div>
+                <div class="legend">Carte de pixels (0-9)</div>
             </div>
             <script>
                 window.onload = function() {
@@ -555,6 +453,3 @@ function printBoth() {
     
     printWindow.document.close();
 }
-
-// Initialize
-convertBtn.disabled = true;

@@ -36,12 +36,28 @@ function isGreyscale(imageData) {
  * @returns {object} Object containing pixelMap and greyscaleImageData
  */
 function convertToPixelMap(imageData, width, height) {
-  console.log('convertToPixelMap called with:', { imageData, width, height });
+  console.log('convertToPixelMap called with:', { width, height, imageDataWidth: imageData.width, imageDataHeight: imageData.height });
   console.log('imageData type:', typeof imageData);
   console.log('imageData keys:', Object.keys(imageData));
   console.log('imageData.data type:', typeof imageData.data);
   console.log('imageData.data length:', imageData.data.length);
   console.log('Expected data length:', width * height * 4);
+  
+  // Validate input
+  if (!imageData || !imageData.data || !imageData.width || !imageData.height) {
+    console.error('Invalid imageData provided to convertToPixelMap');
+    return { pixelMap: [], greyscaleImageData: null };
+  }
+  
+  // Check if dimensions match
+  if (imageData.width !== width || imageData.height !== height) {
+    console.warn('Dimension mismatch: imageData dimensions differ from provided dimensions', {
+      providedWidth: width,
+      providedHeight: height,
+      imageDataWidth: imageData.width,
+      imageDataHeight: imageData.height
+    });
+  }
   // Clone the image data to avoid modifying the original
   const data = new Uint8ClampedArray(imageData.data);
   const pixelMap = [];
@@ -56,6 +72,13 @@ function convertToPixelMap(imageData, width, height) {
       // Get pixel index
       const idx = (y * width + x) * 4;
       
+      // Safety check to prevent accessing out of bounds
+      if (idx + 3 >= data.length) {
+        console.warn('Pixel index out of bounds:', { x, y, idx, dataLength: data.length });
+        row.push(9); // Default to black if out of bounds
+        continue;
+      }
+      
       let grey;
       if (alreadyGreyscale) {
         // If already greyscale, use the existing value
@@ -66,13 +89,28 @@ function convertToPixelMap(imageData, width, height) {
         const g = data[idx + 1];
         const b = data[idx + 2];
         
+        // Log some sample pixels to see what values we're getting
+        if (y < 5 && x < 5) {
+          console.log(`Pixel (${x},${y}): R=${r}, G=${g}, B=${b}`);
+        }
+        
         // Convert to greyscale using luminance formula
         grey = 0.299 * r + 0.587 * g + 0.114 * b;
+      }
+      
+      // Log some sample grey values
+      if (y < 5 && x < 5) {
+        console.log(`Grey value at (${x},${y}): ${grey}`);
       }
       
       // Quantize to 10 shades (0-9) where 0=white and 9=black
       // Invert the scale so that 0=white and 9=black
       const shade = 9 - Math.floor(grey * 10 / 256);
+      
+      // Log some sample shade values
+      if (y < 5 && x < 5) {
+        console.log(`Shade at (${x},${y}): ${shade}`);
+      }
       
       // Ensure shade is within valid range
       const finalShade = Math.min(Math.max(shade, 0), 9);
