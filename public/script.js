@@ -318,7 +318,7 @@ function printBoth() {
                     position: relative;
                     display: flex;
                     flex-direction: column;
-                    padding: 0.5in; /* Printer-friendly padding */
+                    padding: 0.25in; /* Printer-friendly padding */
                     box-sizing: border-box;
                 }
                 
@@ -358,8 +358,8 @@ function printBoth() {
                     grid-template-rows: repeat(${pixelMap.length}, 1fr);
                     gap: 0;
                     width: 100%;
-                    max-height: 80vh;
-                    font-size: 12px;
+                    max-height: 95vh;
+                    font-size: 10px;
                     overflow: hidden;
                     box-sizing: border-box;
                     border: none;
@@ -372,9 +372,9 @@ function printBoth() {
                     font-weight: bold;
                     margin: 0;
                     padding: 0;
-                    border: 0.5px solid #e0e0e0;
+                    border: 0.25px solid #e0e0e0;
                     box-sizing: border-box;
-                    font-size: 10px;
+                    font-size: 8px;
                     background-color: white;
                 }
                 
@@ -385,23 +385,23 @@ function printBoth() {
                     }
                     
                     .pixel-grid {
-                        font-size: 8px;
+                        font-size: 6px;
                     }
                     
                     .page-title {
-                        font-size: 20px;
+                        font-size: 16px;
                     }
                     
                     .page {
-                        padding: 0.5in; /* Maintain padding for print */
+                        padding: 0.25in; /* Maintain padding for print */
                     }
                 }
                 
                 .legend {
                     text-align: center;
-                    font-size: 14px;
+                    font-size: 12px;
                     color: #666;
-                    margin-top: 20px;
+                    margin-top: 10px;
                 }
                 
                 /* Additional printer-friendly adjustments */
@@ -422,9 +422,8 @@ function printBoth() {
                 <div class="legend">Image Originale - Carte de Pixels</div>
             </div>
             <div class="page">
-                <div class="page-title">Carte de Pixels</div>
-                <div class="page-content">
-                    <div class="pixel-grid" id="pdfPixelGrid">
+                <div class="page-content" style="height: 100%;">
+                    <div class="pixel-grid" id="pdfPixelGrid" style="max-height: 100%;">
     `);
     
     // Add pixel map cells without headers
@@ -437,7 +436,6 @@ function printBoth() {
     printWindow.document.write(`
                     </div>
                 </div>
-                <div class="legend">Carte de pixels (0-9)</div>
             </div>
             <script>
                 window.onload = function() {

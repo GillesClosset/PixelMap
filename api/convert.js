@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { createCanvas, loadImage } = require('canvas');
+const { Jimp } = require('jimp');
 const { convertToPixelMap, pixelMapToCSV, validatePixelMap, pixelMapToText } = require('../utils/imageProcessor');
 
 // Health check endpoint
@@ -41,22 +41,21 @@ async function base64ToImageData(base64Data, width, height) {
   const base64Image = base64Data.replace(/^data:image\/\w+;base64,/, '');
   console.log('Base64 image data length after prefix removal:', base64Image.length);
   
-  // Load image
-  const img = await loadImage(Buffer.from(base64Image, 'base64'));
-  console.log('Loaded image dimensions:', { naturalWidth: img.naturalWidth, naturalHeight: img.naturalHeight });
+  // Load image with Jimp
+  const buffer = Buffer.from(base64Image, 'base64');
+  const image = await Jimp.read(buffer);
+  console.log('Loaded image dimensions:', { width: image.bitmap.width, height: image.bitmap.height });
   
-  // Create canvas and context
-  const canvas = createCanvas(width, height);
-  const ctx = canvas.getContext('2d');
-  
-  // Set image rendering to pixelated for crisp pixels
-  ctx.imageSmoothingEnabled = false;
-  
-  // Draw and resize the image on the canvas
-  ctx.drawImage(img, 0, 0, width, height);
+  // Resize the image
+  image.resize({ w: width, h: height });
   
   // Get image data
-  const imageData = ctx.getImageData(0, 0, width, height);
+  const imageData = {
+    width: image.bitmap.width,
+    height: image.bitmap.height,
+    data: image.bitmap.data
+  };
+  
   console.log('base64ToImageData returning:', {
     width: imageData.width,
     height: imageData.height,

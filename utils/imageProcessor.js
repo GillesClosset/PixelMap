@@ -3,12 +3,15 @@
  */
 
 /**
- * Checks if an image is already greyscale
+* Checks if an image is already greyscale
  * @param {ImageData} imageData - The image data to check
  * @returns {boolean} Whether the image is greyscale
  */
 function isGreyscale(imageData) {
-  const data = imageData.data;
+  // Ensure we're working with a Uint8ClampedArray
+  const data = Array.isArray(imageData.data) || imageData.data instanceof Uint8ClampedArray
+    ? imageData.data
+    : new Uint8ClampedArray(imageData.data);
   const width = imageData.width;
   const height = imageData.height;
   
@@ -58,7 +61,9 @@ function convertToPixelMap(imageData, width, height) {
       imageDataHeight: imageData.height
     });
   }
+  
   // Clone the image data to avoid modifying the original
+  // Jimp uses a Buffer, so we need to convert it to Uint8ClampedArray
   const data = new Uint8ClampedArray(imageData.data);
   const pixelMap = [];
   
