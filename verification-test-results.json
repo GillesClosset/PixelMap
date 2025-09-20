@@ -1,102 +1,84 @@
 {
-  "timestamp": "2025-09-20T11:44:24.641Z",
+  "timestamp": "2025-09-20T15:57:42.503Z",
   "summary": {
-    "passed": 15,
-    "failed": 0,
-    "warnings": 0,
-    "total": 15
+    "passed": 3,
+    "failed": 8,
+    "warnings": 1,
+    "total": 12
   },
   "details": [
     {
       "name": "Serverless Function Import",
       "status": "PASS",
       "details": "api/index.js imports successfully",
-      "timestamp": "2025-09-20T11:44:24.280Z"
+      "timestamp": "2025-09-20T15:57:42.371Z"
     },
     {
       "name": "Middleware Stack Validation",
       "status": "PASS",
-      "details": "10 middleware functions all valid",
-      "timestamp": "2025-09-20T11:44:24.281Z"
+      "details": "8 middleware functions all valid",
+      "timestamp": "2025-09-20T15:57:42.371Z"
     },
     {
       "name": "Health Endpoint /health",
-      "status": "PASS",
-      "details": "Health check successful",
-      "timestamp": "2025-09-20T11:44:24.329Z"
+      "status": "WARN",
+      "details": "Environment not set to Vercel",
+      "timestamp": "2025-09-20T15:57:42.392Z"
     },
     {
-      "name": "Health Endpoint /api/health",
-      "status": "PASS",
-      "details": "Health check successful",
-      "timestamp": "2025-09-20T11:44:24.333Z"
+      "name": "Health Endpoint Testing",
+      "status": "FAIL",
+      "details": "expected 200 \"OK\", got 404 \"Not Found\"",
+      "timestamp": "2025-09-20T15:57:42.395Z"
     },
     {
-      "name": "Info Endpoint /info",
-      "status": "PASS",
-      "details": "Info endpoint successful",
-      "timestamp": "2025-09-20T11:44:24.335Z"
-    },
-    {
-      "name": "Info Endpoint /api/info",
-      "status": "PASS",
-      "details": "Info endpoint successful",
-      "timestamp": "2025-09-20T11:44:24.339Z"
+      "name": "Info Endpoint Testing",
+      "status": "FAIL",
+      "details": "expected 200 \"OK\", got 404 \"Not Found\"",
+      "timestamp": "2025-09-20T15:57:42.397Z"
     },
     {
       "name": "Convert Endpoint /convert",
       "status": "PASS",
       "details": "Successfully converted image to 70 pixel rows",
-      "timestamp": "2025-09-20T11:44:24.473Z"
+      "timestamp": "2025-09-20T15:57:42.482Z"
     },
     {
-      "name": "Convert Endpoint /api/convert",
-      "status": "PASS",
-      "details": "Successfully converted image to 70 pixel rows",
-      "timestamp": "2025-09-20T11:44:24.531Z"
+      "name": "Convert Endpoint Testing",
+      "status": "FAIL",
+      "details": "expected 200 \"OK\", got 404 \"Not Found\"",
+      "timestamp": "2025-09-20T15:57:42.488Z"
     },
     {
-      "name": "Missing Image Data Error",
-      "status": "PASS",
-      "details": "Correctly handled missing image data",
-      "timestamp": "2025-09-20T11:44:24.534Z"
+      "name": "Convert Error Handling Testing",
+      "status": "FAIL",
+      "details": "expected 400 \"Bad Request\", got 404 \"Not Found\"",
+      "timestamp": "2025-09-20T15:57:42.492Z"
     },
     {
-      "name": "Invalid Shades Error",
-      "status": "PASS",
-      "details": "Correctly handled invalid shades",
-      "timestamp": "2025-09-20T11:44:24.537Z"
+      "name": "CSV Format Testing",
+      "status": "FAIL",
+      "details": "expected 200 \"OK\", got 404 \"Not Found\"",
+      "timestamp": "2025-09-20T15:57:42.495Z"
     },
     {
-      "name": "Invalid Format Error",
-      "status": "PASS",
-      "details": "Correctly handled invalid format",
-      "timestamp": "2025-09-20T11:44:24.541Z"
+      "name": "Enhanced Logging Testing",
+      "status": "FAIL",
+      "details": "expected 200 \"OK\", got 404 \"Not Found\"",
+      "timestamp": "2025-09-20T15:57:42.498Z"
     },
     {
-      "name": "CSV Format Output",
-      "status": "PASS",
-      "details": "Generated CSV with 76 lines",
-      "timestamp": "2025-09-20T11:44:24.628Z"
+      "name": "Catch-all Route Testing",
+      "status": "FAIL",
+      "details": "Debug information not included in catch-all response",
+      "timestamp": "2025-09-20T15:57:42.500Z"
     },
     {
-      "name": "Enhanced Logging",
-      "status": "PASS",
-      "details": "Found 1 Vercel-specific log messages",
-      "timestamp": "2025-09-20T11:44:24.632Z"
-    },
-    {
-      "name": "Catch-all Route",
-      "status": "PASS",
-      "details": "Correctly handles non-existent routes",
-      "timestamp": "2025-09-20T11:44:24.635Z"
-    },
-    {
-      "name": "CORS Headers",
-      "status": "PASS",
-      "details": "All CORS headers present and OPTIONS handled",
-      "timestamp": "2025-09-20T11:44:24.641Z"
+      "name": "CORS Headers Testing",
+      "status": "FAIL",
+      "details": "expected 200 \"OK\", got 404 \"Not Found\"",
+      "timestamp": "2025-09-20T15:57:42.503Z"
     }
   ],
-  "verdict": "READY_FOR_DEPLOYMENT"
+  "verdict": "NEEDS_FIXES"
 }

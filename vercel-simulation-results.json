@@ -1,8 +1,8 @@
 {
-  "timestamp": "2025-09-20T11:45:43.784Z",
+  "timestamp": "2025-09-20T16:03:32.425Z",
   "summary": {
-    "passed": 9,
-    "failed": 0,
+    "passed": 8,
+    "failed": 1,
     "warnings": 1,
     "total": 10
   },
@@ -11,62 +11,62 @@
       "name": "Serverless Function Export",
       "status": "PASS",
       "details": "Function exports correctly for Vercel",
-      "timestamp": "2025-09-20T11:45:43.621Z"
+      "timestamp": "2025-09-20T16:03:32.337Z"
     },
     {
       "name": "Health Endpoint /api/health",
       "status": "PASS",
       "details": "Responds correctly",
-      "timestamp": "2025-09-20T11:45:43.624Z"
+      "timestamp": "2025-09-20T16:03:32.339Z"
     },
     {
       "name": "Health Endpoint /health",
       "status": "PASS",
       "details": "Responds correctly",
-      "timestamp": "2025-09-20T11:45:43.625Z"
+      "timestamp": "2025-09-20T16:03:32.340Z"
     },
     {
       "name": "Health Endpoint /api/index/health",
       "status": "WARN",
       "details": "Expected to fail - this is rewrite edge case",
-      "timestamp": "2025-09-20T11:45:43.625Z"
+      "timestamp": "2025-09-20T16:03:32.340Z"
     },
     {
       "name": "Convert Endpoint /api/convert",
       "status": "PASS",
       "details": "Generated 70 pixel rows",
-      "timestamp": "2025-09-20T11:45:43.736Z"
+      "timestamp": "2025-09-20T16:03:32.397Z"
     },
     {
       "name": "Convert Endpoint /convert",
       "status": "PASS",
       "details": "Generated 70 pixel rows",
-      "timestamp": "2025-09-20T11:45:43.781Z"
+      "timestamp": "2025-09-20T16:03:32.423Z"
     },
     {
       "name": "Error Handling",
       "status": "PASS",
       "details": "Correctly handles missing image data",
-      "timestamp": "2025-09-20T11:45:43.781Z"
+      "timestamp": "2025-09-20T16:03:32.423Z"
     },
     {
       "name": "CORS Headers",
       "status": "PASS",
       "details": "All CORS headers present in serverless environment",
-      "timestamp": "2025-09-20T11:45:43.782Z"
+      "timestamp": "2025-09-20T16:03:32.424Z"
     },
     {
       "name": "Performance Test",
       "status": "PASS",
-      "details": "5 concurrent requests in 1ms, memory delta: 105KB",
-      "timestamp": "2025-09-20T11:45:43.784Z"
+      "details": "5 concurrent requests in 1ms, memory delta: 123KB",
+      "timestamp": "2025-09-20T16:03:32.425Z"
     },
     {
-      "name": "Environment Simulation",
-      "status": "PASS",
-      "details": "Works correctly with Vercel environment variables",
-      "timestamp": "2025-09-20T11:45:43.784Z"
+      "name": "Vercel Environment Testing",
+      "status": "FAIL",
+      "details": "Info endpoint failed in production environment",
+      "timestamp": "2025-09-20T16:03:32.425Z"
     }
   ],
-  "verdict": "VERCEL_READY"
+  "verdict": "NEEDS_FIXES"
 }

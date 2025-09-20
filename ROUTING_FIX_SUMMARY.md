@@ -1,29 +1,65 @@
-# PixelMap Routing Fix Summary
+# Routing Fix Summary
 
-## Issue Description
-The PixelMap application had a routing issue that prevented proper API access in Vercel deployments. The problem was in the `server.js` file where the routing configuration was different for local development and Vercel deployment.
-
-## Root Cause
-1. In local development, the convertApi router was mounted at `/api`
-2. In Vercel deployment, the convertApi router was mounted at `/` (root)
-3. Vercel's `vercel.json` rewrites `/api/*` requests to `/api/index`
-4. This caused a mismatch where Vercel forwarded `/api/health` but the Express app was only looking for `/health`
+## Problem
+The application was experiencing routing mismatches when deployed to Vercel:
+- Vercel's rewrite rules forward requests as `/api/health` and `/api/convert`
+- The original `api/index.js` only handled `/health` and `/convert` paths
+- This caused 404 errors for Vercel requests
 
 ## Solution
-Modified `server.js` to consistently mount the convertApi router at `/api` for both environments:
-- Removed the conditional logic that mounted the router at different paths
-- Now the router is always mounted at `/api`
-- This works because Vercel forwards the full path `/api/health` to the Express app
+Updated `api/index.js` to handle both route patterns by:
 
-## Verification
-Created and ran tests to verify the fix works in both environments:
-- Local development: `http://localhost:3000/api/health` and `http://localhost:3000/api/info` work correctly
-- Vercel deployment: `https://your-app.vercel.app/api/health` and `https://your-app.vercel.app/api/info` work correctly
+1. **Extracting route handlers into named functions**:
+   - Created `healthHandler` for the health check endpoint
+   - Created `convertHandler` for the convert endpoint
 
-## Expected API Endpoints
-After the fix, the API endpoints are accessible at the same paths in both environments:
-- `/api/health` - Health check endpoint
-- `/api/info` - API information endpoint
-- `/api/convert` - Image conversion endpoint
+2. **Registering routes for both patterns**:
+   - Health check: `/health` and `/api/health` both use `healthHandler`
+   - Convert endpoint: `/convert` and `/api/convert` both use `convertHandler`
 
-This resolves the Vercel deployment issue and ensures consistent API access across environments.
+3. **Updating error messages**:
+   - Modified the catch-all route to show all available endpoints in the error response
+
+## Changes Made
+
+### Before
+```javascript
+// Health check - single pattern
+app.get('/health', (req, res) => {
+  // health check implementation
+});
+
+// Convert endpoint - single pattern
+app.post('/convert', async (req, res) => {
+  // convert implementation
+});
+```
+
+### After
+```javascript
+// Health check - dual pattern
+const healthHandler = (req, res) => {
+  // health check implementation
+};
+
+app.get('/health', healthHandler);
+app.get('/api/health', healthHandler);
+
+// Convert endpoint - dual pattern
+const convertHandler = async (req, res) => {
+  // convert implementation
+};
+
+app.post('/convert', convertHandler);
+app.post('/api/convert', convertHandler);
+```
+
+## Testing Results
+The vercel-simulation-test.js confirms that both route patterns now work correctly:
+- ✅ `/health` endpoint responds correctly
+- ✅ `/api/health` endpoint responds correctly
+- ✅ `/convert` endpoint responds correctly
+- ✅ `/api/convert` endpoint responds correctly
+
+## Impact
+This fix ensures that the application works correctly in both local development and Vercel deployment environments without requiring changes to the Vercel rewrite rules.
