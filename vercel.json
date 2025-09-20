@@ -3,11 +3,11 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "/api/$1"
+      "destination": "/api/convert"
     },
     {
       "source": "/(.*)",
-      "destination": "/$1"
+      "destination": "/api/index"
     }
   ],
   "headers": [
