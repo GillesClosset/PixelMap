@@ -54,6 +54,18 @@ app.post('/convert', convertHandler);
 app.post('/api/convert', convertHandler);
 ```
 
+## Debugging Enhancements
+
+### Enhanced Debugging in api/index-fixed.js
+The `api/index-fixed.js` file has been enhanced with comprehensive debugging to identify the "apply" error:
+
+1. **Enhanced Logging**: Using `console.error` with `[VERCEL_DEBUG]` prefix to ensure logs appear in Vercel
+2. **Router Wrapping**: Wrapped Express router to catch undefined handlers
+3. **Middleware Debugging**: Enhanced middleware registration with detailed logging
+4. **Route Registration Debugging**: Added logging for route registration to detect undefined handlers
+5. **Global Error Handling**: Enhanced error handler that specifically detects and logs "apply" errors
+6. **Request Logging**: Added detailed request logging middleware
+
 ## Testing Results
 The vercel-simulation-test.js confirms that both route patterns now work correctly:
 - ✅ `/health` endpoint responds correctly
