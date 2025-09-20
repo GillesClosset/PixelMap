@@ -35,44 +35,63 @@ router.get('/info', (req, res) => {
 
 // Function to convert base64 image data to canvas ImageData
 async function base64ToImageData(base64Data, width, height) {
-  console.log('base64ToImageData called with:', { width, height, base64DataLength: base64Data.length });
-  
-  // Remove data URL prefix if present
-  const base64Image = base64Data.replace(/^data:image\/\w+;base64,/, '');
-  console.log('Base64 image data length after prefix removal:', base64Image.length);
-  
-  // Load image with Jimp
-  const buffer = Buffer.from(base64Image, 'base64');
-  const image = await Jimp.read(buffer);
-  console.log('Loaded image dimensions:', { width: image.bitmap.width, height: image.bitmap.height });
-  
-  // Resize the image
-  image.resize({ w: width, h: height });
-  
-  // Get image data
-  const imageData = {
-    width: image.bitmap.width,
-    height: image.bitmap.height,
-    data: image.bitmap.data
-  };
-  
-  console.log('base64ToImageData returning:', {
-    width: imageData.width,
-    height: imageData.height,
-    dataLength: imageData.data.length,
-    samplePixels: [
-      imageData.data[0], imageData.data[1], imageData.data[2], imageData.data[3], // First pixel
-      imageData.data[4], imageData.data[5], imageData.data[6], imageData.data[7]  // Second pixel
-    ]
-  });
-  console.log('imageData type:', typeof imageData);
-  console.log('imageData keys:', Object.keys(imageData));
-  console.log('imageData.data type:', typeof imageData.data);
-  console.log('imageData.data length:', imageData.data.length);
-  console.log('Expected data length:', width * height * 4);
-  return imageData;
+  try {
+    console.log('base64ToImageData called with:', { width, height, base64DataLength: base64Data.length });
+    
+    // Validate input
+    if (!base64Data) {
+      throw new Error('Base64 data is required');
+    }
+    
+    // Remove data URL prefix if present
+    const base64Image = base64Data.replace(/^data:image\/\w+;base64,/, '');
+    console.log('Base64 image data length after prefix removal:', base64Image.length);
+    
+    // Validate base64 data
+    if (base64Image.length === 0) {
+      throw new Error('Invalid base64 image data');
+    }
+    
+    // Load image with Jimp
+    const buffer = Buffer.from(base64Image, 'base64');
+    const image = await Jimp.read(buffer);
+    console.log('Loaded image dimensions:', { width: image.bitmap.width, height: image.bitmap.height });
+    
+    // Validate dimensions
+    if (width <= 0 || height <= 0) {
+      throw new Error('Invalid dimensions provided');
+    }
+    
+    // Resize the image
+    image.resize({ w: width, h: height });
+    
+    // Get image data
+    const imageData = {
+      width: image.bitmap.width,
+      height: image.bitmap.height,
+      data: image.bitmap.data
+    };
+    
+    console.log('base64ToImageData returning:', {
+      width: imageData.width,
+      height: imageData.height,
+      dataLength: imageData.data.length,
+      samplePixels: [
+        imageData.data[0], imageData.data[1], imageData.data[2], imageData.data[3], // First pixel
+        imageData.data[4], imageData.data[5], imageData.data[6], imageData.data[7]  // Second pixel
+      ]
+    });
+    console.log('imageData type:', typeof imageData);
+    console.log('imageData keys:', Object.keys(imageData));
+    console.log('imageData.data type:', typeof imageData.data);
+    console.log('imageData.data length:', imageData.data.length);
+    console.log('Expected data length:', width * height * 4);
+    return imageData;
+  } catch (error) {
+    console.error('Error in base64ToImageData:', error);
+    throw new Error(`Failed to process image data: ${error.message}`);
+  }
 }
-
 
 // Image conversion endpoint
 router.post('/convert', async (req, res) => {
@@ -128,6 +147,17 @@ router.post('/convert', async (req, res) => {
     console.log('originalImageData.data length:', originalImageData.data.length);
     console.log('Expected data length:', targetWidth * targetHeight * 4);
     
+    // Validate image data before processing
+    if (!originalImageData || !originalImageData.data) {
+      return res.status(500).json({
+        success: false,
+        error: {
+          code: 'INVALID_IMAGE_DATA',
+          message: 'Les données de l\'image sont invalides'
+        }
+      });
+    }
+    
     // Process image to pixel map using the shared utility function
     console.log('About to call convertToPixelMap with originalImageData:', originalImageData);
     console.log('originalImageData type:', typeof originalImageData);
@@ -135,6 +165,7 @@ router.post('/convert', async (req, res) => {
     console.log('originalImageData.data type:', typeof originalImageData.data);
     console.log('originalImageData.data length:', originalImageData.data.length);
     console.log('Expected data length:', targetWidth * targetHeight * 4);
+    
     const { pixelMap, greyscaleImageData } = convertToPixelMap(
       originalImageData,
       targetWidth,
