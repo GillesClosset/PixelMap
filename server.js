@@ -1,6 +1,5 @@
 const express = require('express');
 const path = require('path');
-const convertApi = require('./api/convert');
 
 // Create express app
 const app = express();
@@ -12,14 +11,12 @@ app.use(express.static('public'));
 // Check if running on Vercel
 const isVercel = !!process.env.VERCEL || !!process.env.NOW_REGION;
 
-// API routes - always mount at /api
-// Vercel's rewrites will forward /api/* requests to this app with the full path
-app.use('/api', convertApi);
-
-// Serve frontend
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
+// For local development, import the api logic directly to avoid routing conflicts
+if (!isVercel) {
+  // Import the same self-contained API handler used by Vercel
+  const apiHandler = require('./api/index');
+  app.use('/api', apiHandler);
+}
 
 // Serve frontend
 app.get('/', (req, res) => {
