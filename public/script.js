@@ -271,15 +271,17 @@ function displayPixelMap(map) {
     }
 }
 
-
+// Updated printBoth() using CSS aspect-ratio instead of padding-top to prevent spillover
 
 function printBoth() {
     if (!pixelMap || !greyscaleImageData || !currentImage) {
         alert('Aucune donnée à imprimer. Veuillez d\'abord convertir une image.');
         return;
     }
-    
-    // Create a new window for printing
+
+    const pixelWidth = pixelMap[0].length;
+    const pixelHeight = pixelMap.length;
+
     const printWindow = window.open('', '_blank');
     printWindow.document.write(`
         <!DOCTYPE html>
@@ -289,165 +291,55 @@ function printBoth() {
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>Carte de Pixels - Impression</title>
             <style>
-                @page {
-                    margin: 0.75in; /* Printer-friendly margins */
-                    size: A4;
+                @page { margin: 0.5in; size: A4; }
+                body { margin: 0; padding: 0; font-family: Arial, sans-serif; }
+                .page { margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; }
+                .page + .page { page-break-before: always; }
+                .ratio-box {
+                    width: 95%;
+                    aspect-ratio: ${pixelWidth} / ${pixelHeight};
                 }
-                
-                @media print {
-                    html, body {
-                        margin: 0;
-                        padding: 0;
-                        width: 100%;
-                        height: 100%;
-                    }
-                }
-                
-                body {
-                    font-family: Arial, sans-serif;
-                    margin: 0;
-                    padding: 0;
+                .ratio-box > img,
+                .ratio-box > .pixel-grid {
                     width: 100%;
                     height: 100%;
+                    object-fit: fill;
                 }
-                
-                .page {
-                    width: 100%;
-                    min-height: 100vh;
-                    page-break-after: always;
-                    position: relative;
-                    display: flex;
-                    flex-direction: column;
-                    padding: 0.25in; /* Printer-friendly padding */
-                    box-sizing: border-box;
-                }
-                
-                .page:last-child {
-                    page-break-after: avoid;
-                }
-                
-                .page-title {
-                    text-align: center;
-                    font-size: 24px;
-                    font-weight: bold;
-                    color: #333;
-                    margin-bottom: 20px;
-                }
-                
-                .page-content {
-                    width: 100%;
-                    flex-grow: 1;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    margin: 20px 0;
-                }
-                
-                .page img {
-                    max-width: 100%;
-                    max-height: 100%;
-                    width: auto;
-                    height: auto;
-                    object-fit: contain;
-                    border: none;
-                }
-                
                 .pixel-grid {
                     display: grid;
-                    grid-template-columns: repeat(${pixelMap[0].length}, 1fr);
-                    grid-template-rows: repeat(${pixelMap.length}, 1fr);
-                    gap: 0;
-                    width: 100%;
-                    max-height: 95vh;
-                    font-size: 10px;
-                    overflow: hidden;
-                    box-sizing: border-box;
-                    border: none;
+                    grid-template-columns: repeat(${pixelWidth}, 1fr);
+                    grid-template-rows: repeat(${pixelHeight}, 1fr);
                 }
-                
                 .pixel-cell {
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    font-weight: bold;
-                    margin: 0;
-                    padding: 0;
-                    border: 0.25px solid #e0e0e0;
-                    box-sizing: border-box;
                     font-size: 8px;
-                    background-color: white;
+                    border: 0.25px solid #e0e0e0;
                 }
-                
                 @media print {
-                    body {
-                        margin: 0;
-                        font-size: 10px;
-                    }
-                    
-                    .pixel-grid {
-                        font-size: 6px;
-                    }
-                    
-                    .page-title {
-                        font-size: 16px;
-                    }
-                    
-                    .page {
-                        padding: 0.25in; /* Maintain padding for print */
-                    }
-                }
-                
-                .legend {
-                    text-align: center;
-                    font-size: 12px;
-                    color: #666;
-                    margin-top: 10px;
-                }
-                
-                /* Additional printer-friendly adjustments */
-                @media print {
-                    * {
-                        -webkit-print-color-adjust: exact !important;
-                        color-adjust: exact !important;
-                    }
+                    .pixel-grid { font-size: 6px; }
                 }
             </style>
         </head>
         <body>
             <div class="page">
-                <div class="page-title">Image Originale</div>
-                <div class="page-content">
+                <div class="ratio-box">
                     <img src="${currentImage.src}" alt="Image Originale">
                 </div>
-                <div class="legend">Image Originale - Carte de Pixels</div>
             </div>
             <div class="page">
-                <div class="page-content" style="height: 100%;">
-                    <div class="pixel-grid" id="pdfPixelGrid" style="max-height: 100%;">
-    `);
-    
-    // Add pixel map cells without headers
-    for (let y = 0; y < pixelMap.length; y++) {
-        for (let x = 0; x < pixelMap[y].length; x++) {
-            printWindow.document.write(`<div class="pixel-cell">${pixelMap[y][x]}</div>`);
-        }
-    }
-    
-    printWindow.document.write(`
+                <div class="ratio-box">
+                    <div class="pixel-grid">
+                        ${pixelMap.map(row => row.map(val => `<div class="pixel-cell">${val}</div>`).join('')).join('')}
                     </div>
                 </div>
             </div>
             <script>
-                window.onload = function() {
-                    window.print();
-                    window.onafterprint = function() {
-                        window.close();
-                    };
-                };
+                window.onload = function() { window.print(); };
             </script>
         </body>
         </html>
     `);
-    
     printWindow.document.close();
 }
