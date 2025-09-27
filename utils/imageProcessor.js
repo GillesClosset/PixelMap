@@ -67,8 +67,11 @@ function convertToPixelMap(imageData, width, height) {
   const data = new Uint8ClampedArray(imageData.data);
   const pixelMap = [];
   
-  // Check if image is already greyscale
-  const alreadyGreyscale = isGreyscale(imageData);
+ // According to requirements, the image is always greyscale with 10 tones
+ // So we can skip the greyscale check and directly process the pixel values
+  
+  // Create a separate array for the greyscale image data that preserves original values
+ const greyscaleData = new Uint8ClampedArray(imageData.data);
   
   // Process each pixel
   for (let y = 0; y < height; y++) {
@@ -84,32 +87,17 @@ function convertToPixelMap(imageData, width, height) {
         continue;
       }
       
-      let grey;
-      if (alreadyGreyscale) {
-        // If already greyscale, use the existing value
-        grey = data[idx];
-      } else {
-        // Get RGB values
-        const r = data[idx];
-        const g = data[idx + 1];
-        const b = data[idx + 2];
-        
-        // Log some sample pixels to see what values we're getting
-        if (y < 5 && x < 5) {
-          console.log(`Pixel (${x},${y}): R=${r}, G=${g}, B=${b}`);
-        }
-        
-        // Convert to greyscale using luminance formula
-        grey = 0.299 * r + 0.587 * g + 0.114 * b;
-      }
+      // Since the image is always greyscale as per requirements, use the red channel value directly
+      // All RGB values should be the same in a greyscale image
+      const grey = data[idx];
       
       // Log some sample grey values
       if (y < 5 && x < 5) {
         console.log(`Grey value at (${x},${y}): ${grey}`);
       }
       
-      // Quantize to 10 shades (0-9) where 0=white and 9=black
-      // Invert the scale so that 0=white and 9=black
+      // Map the greyscale value (0-255) directly to 10 shades (0-9) where 0=white and 9=black
+      // We map the full range of greyscale values to our 10-tone scale
       const shade = 9 - Math.floor(grey * 10 / 256);
       
       // Log some sample shade values
@@ -121,21 +109,18 @@ function convertToPixelMap(imageData, width, height) {
       const finalShade = Math.min(Math.max(shade, 0), 9);
       row.push(finalShade);
       
-      // Update the greyscale image data (convert back to normal scale for display)
-      const displayGrey = 255 - (finalShade * 255 / 9);
-      data[idx] = displayGrey;     // R
-      data[idx + 1] = displayGrey; // G
-      data[idx + 2] = displayGrey; // B
-      data[idx + 3] = 255;         // A
+      // Keep original pixel value for the greyscale image data to match original upload
+      // We'll only modify the data for the greyscaleImageData if needed for display
+      // For now, preserve original values to match uploaded image
     }
     pixelMap.push(row);
   }
   
-  // Create new ImageData with the modified data
+  // Create new ImageData with the original data to match the uploaded image
   // Return the data and dimensions so the calling function can create a proper ImageData object
   // if needed with access to canvas context
   const greyscaleImageData = {
-    data: data,
+    data: greyscaleData,
     width: width,
     height: height
   };

@@ -325,7 +325,7 @@ function printBoth() {
         <body>
             <div class="page">
                 <div class="ratio-box">
-                    <img src="${currentImage.src}" alt="Image Originale">
+                    <img src="${greyscaleCanvas.toDataURL()}" alt="Image Originale">
                 </div>
             </div>
             <div class="page">

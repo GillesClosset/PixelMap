@@ -4,8 +4,9 @@ Une application web légère qui convertit les images en cartes de pixels pour l
 
 ## Fonctionnalités
 
-- Convertit les images en cartes de pixels de 50x80
-- Supporte 9 à 12 nuances de gris (par défaut 12)
+- Convertit les images en cartes de pixels de 50x70
+- Supporte 9 à 12 nuances de gris (par défaut 10)
+- Conversion directe des tons gris sans traitement complexe
 - Interface utilisateur en français
 - Affichage de l'image en pixels gris et de la carte de pixels
 - Téléchargement de la carte de pixels au format PDF (2 pages)
@@ -54,7 +55,7 @@ curl -X POST http://localhost:3000/api/convert \
   -H "Content-Type: application/json" \
   -d '{
     "imageData": "base64-encoded-image-data",
-    "shades": 12,
+    "shades": 10,
     "format": "json"
   }'
 ```
@@ -83,6 +84,14 @@ npm run dev
 
 # L'application sera disponible à http://localhost:3000
 ```
+
+## Traitement d'Image
+
+Le système de traitement d'image a été simplifié pour une conversion directe des tons gris :
+- Les images en tons gris sont converties directement sans traitement complexe
+- Aucune conversion ou moyennage de couleurs n'est effectué
+- Les tons gris existants sont directement mappés sur l'échelle de 10 tons (0-9)
+- Le mapping utilise l'échelle 0=blanc à 9=noir
 
 ## Extensibilité
 
