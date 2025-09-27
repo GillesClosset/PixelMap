@@ -1,66 +1,14 @@
-const express = require('express');
-const router = express.Router();
 const { Jimp } = require('jimp');
-const { convertToPixelMap, pixelMapToCSV, validatePixelMap, pixelMapToText } = require('../utils/imageProcessor');
-
-// Health check endpoint
-router.get('/health', (req, res) => {
-  res.status(200).json({
-    success: true,
-    message: 'Service en ligne',
-    timestamp: new Date().toISOString()
-  });
-});
-
-// API info endpoint
-router.get('/info', (req, res) => {
-  res.status(200).json({
-    success: true,
-    data: {
-      name: 'Convertisseur de Carte de Pixels',
-      description: 'API pour convertir des images en cartes de pixels',
-      version: '1.0.0',
-      endpoints: {
-        'POST /api/convert': 'Convertit une image en carte de pixels',
-        'GET /api/health': 'Vérifie l\'état du service',
-        'GET /api/info': 'Informations sur l\'API'
-      },
-      parameters: {
-        shades: 'Nombre de nuances de gris (9-12, défaut: 12)',
-        format: 'Format de sortie (json, csv, défaut: json)'
-      }
-    }
-  });
-});
 
 // Function to convert base64 image data to canvas ImageData
 async function base64ToImageData(base64Data, width, height) {
   try {
-    console.log('base64ToImageData called with:', { width, height, base64DataLength: base64Data.length });
-    
-    // Validate input
-    if (!base64Data) {
-      throw new Error('Base64 data is required');
-    }
-    
     // Remove data URL prefix if present
     const base64Image = base64Data.replace(/^data:image\/\w+;base64,/, '');
-    console.log('Base64 image data length after prefix removal:', base64Image.length);
-    
-    // Validate base64 data
-    if (base64Image.length === 0) {
-      throw new Error('Invalid base64 image data');
-    }
     
     // Load image with Jimp
     const buffer = Buffer.from(base64Image, 'base64');
     const image = await Jimp.read(buffer);
-    console.log('Loaded image dimensions:', { width: image.bitmap.width, height: image.bitmap.height });
-    
-    // Validate dimensions
-    if (width <= 0 || height <= 0) {
-      throw new Error('Invalid dimensions provided');
-    }
     
     // Resize the image
     image.resize({ w: width, h: height });
@@ -72,159 +20,90 @@ async function base64ToImageData(base64Data, width, height) {
       data: image.bitmap.data
     };
     
-    console.log('base64ToImageData returning:', {
-      width: imageData.width,
-      height: imageData.height,
-      dataLength: imageData.data.length,
-      samplePixels: [
-        imageData.data[0], imageData.data[1], imageData.data[2], imageData.data[3], // First pixel
-        imageData.data[4], imageData.data[5], imageData.data[6], imageData.data[7]  // Second pixel
-      ]
-    });
-    console.log('imageData type:', typeof imageData);
-    console.log('imageData keys:', Object.keys(imageData));
-    console.log('imageData.data type:', typeof imageData.data);
-    console.log('imageData.data length:', imageData.data.length);
-    console.log('Expected data length:', width * height * 4);
     return imageData;
   } catch (error) {
-    console.error('Error in base64ToImageData:', error);
     throw new Error(`Failed to process image data: ${error.message}`);
   }
 }
 
-// Image conversion endpoint
-router.post('/convert', async (req, res) => {
+// Convert to pixel map function
+function convertToPixelMap(imageData, width, height) {
+  const data = imageData.data;
+  const map = [];
+  
+  for (let y = 0; y < height; y++) {
+    const row = [];
+    for (let x = 0; x < width; x++) {
+      const idx = (y * width + x) * 4;
+      const r = data[idx];
+      const g = data[idx + 1];
+      const b = data[idx + 2];
+      
+      // Convert to greyscale
+      const grey = 0.299 * r + 0.587 * g + 0.114 * b;
+      
+      // Quantize to 10 shades (0-9) where 0=white and 9=black
+      const shade = 9 - Math.floor(grey * 10 / 256);
+      const finalShade = Math.min(Math.max(shade, 0), 9);
+      row.push(finalShade);
+    }
+    map.push(row);
+  }
+  
+  return { pixelMap: map };
+}
+
+// Main handler function for Vercel
+export default async function handler(req, res) {
+  // Set CORS headers
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
+  if (req.method !== 'POST') {
+    return res.status(405).json({
+      success: false,
+      error: { message: 'Method not allowed' }
+    });
+  }
+
   try {
-    // Extract data from request
     const { imageData, shades = 10, format = 'json' } = req.body;
     
-    // Validate input
     if (!imageData) {
       return res.status(400).json({
         success: false,
-        error: {
-          code: 'MISSING_IMAGE_DATA',
-          message: 'Les données de l\'image sont requises'
-        }
+        error: { message: 'Image data is required' }
       });
     }
     
-    // Validate shades parameter
-    const shadeCount = parseInt(shades);
-    if (isNaN(shadeCount) || shadeCount < 9 || shadeCount > 12) {
-      return res.status(400).json({
-        success: false,
-        error: {
-          code: 'INVALID_SHADES',
-          message: 'Le nombre de nuances doit être entre 9 et 12'
-        }
-      });
-    }
-    
-    // Validate format parameter
-    if (!['json', 'csv'].includes(format)) {
-      return res.status(400).json({
-        success: false,
-        error: {
-          code: 'INVALID_FORMAT',
-          message: 'Le format doit être "json" ou "csv"'
-        }
-      });
-    }
-    
-    // Process the image
     const targetWidth = 50;
     const targetHeight = 70;
     
-    // Convert base64 image data to ImageData
-    console.log('About to call base64ToImageData with imageData:', imageData);
     const originalImageData = await base64ToImageData(imageData, targetWidth, targetHeight);
-    console.log('base64ToImageData returned:', originalImageData);
-    console.log('originalImageData type:', typeof originalImageData);
-    console.log('originalImageData keys:', Object.keys(originalImageData));
-    console.log('originalImageData.data type:', typeof originalImageData.data);
-    console.log('originalImageData.data length:', originalImageData.data.length);
-    console.log('Expected data length:', targetWidth * targetHeight * 4);
+    const { pixelMap } = convertToPixelMap(originalImageData, targetWidth, targetHeight);
     
-    // Validate image data before processing
-    if (!originalImageData || !originalImageData.data) {
-      return res.status(500).json({
-        success: false,
-        error: {
-          code: 'INVALID_IMAGE_DATA',
-          message: 'Les données de l\'image sont invalides'
-        }
-      });
-    }
-    
-    // Process image to pixel map using the shared utility function
-    console.log('About to call convertToPixelMap with originalImageData:', originalImageData);
-    console.log('originalImageData type:', typeof originalImageData);
-    console.log('originalImageData keys:', Object.keys(originalImageData));
-    console.log('originalImageData.data type:', typeof originalImageData.data);
-    console.log('originalImageData.data length:', originalImageData.data.length);
-    console.log('Expected data length:', targetWidth * targetHeight * 4);
-    
-    const { pixelMap, greyscaleImageData } = convertToPixelMap(
-      originalImageData,
-      targetWidth,
-      targetHeight
-    );
-    console.log('convertToPixelMap returned:', { pixelMap, greyscaleImageData });
-    
-    // Validate the generated pixel map
-    if (!validatePixelMap(pixelMap, targetWidth, targetHeight)) {
-      return res.status(500).json({
-        success: false,
-        error: {
-          code: 'PROCESSING_ERROR',
-          message: 'La carte de pixels générée est invalide'
-        }
-      });
-    }
-    
-    // Return response based on format
-    if (format === 'csv') {
-      // Generate CSV content using utility function
-      const csvContent = pixelMapToCSV(pixelMap);
-      
-      res.setHeader('Content-Type', 'text/csv');
-      res.setHeader('Content-Disposition', 'attachment; filename="carte-pixels.csv"');
-      return res.status(200).send(csvContent);
-    } else {
-      // JSON format
-      return res.status(200).json({
-        success: true,
-        data: {
-          pixelMap: pixelMap,
-          dimensions: {
-            width: targetWidth,
-            height: targetHeight
-          },
-          shades: shadeCount,
-          timestamp: new Date().toISOString()
-        }
-      });
-    }
+    return res.status(200).json({
+      success: true,
+      data: {
+        pixelMap: pixelMap,
+        dimensions: {
+          width: targetWidth,
+          height: targetHeight
+        },
+        shades: parseInt(shades),
+        timestamp: new Date().toISOString()
+      }
+    });
   } catch (error) {
     console.error('Error processing image:', error);
     return res.status(500).json({
       success: false,
-      error: {
-        code: 'PROCESSING_ERROR',
-        message: 'Une erreur s\'est produite lors du traitement de l\'image: ' + error.message
-      }
+      error: { message: error.message }
     });
   }
-});
-
-// Handle OPTIONS requests for CORS
-router.options('/convert', (req, res) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  res.status(200).send();
-});
-
-module.exports = router;
+}
