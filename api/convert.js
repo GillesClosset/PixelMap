@@ -1,4 +1,4 @@
-const { Jimp } = require('jimp');
+const Jimp = require('jimp');
 
 // Function to convert base64 image data to canvas ImageData
 async function base64ToImageData(base64Data, width, height) {
