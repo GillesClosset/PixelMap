@@ -11,7 +11,7 @@ async function base64ToImageData(base64Data, width, height) {
     const image = await Jimp.read(buffer);
     
     // Resize the image
-    image.resize({ w: width, h: height });
+    image.resize(width, height);
     
     // Get image data
     const imageData = {
